@@ -14,8 +14,10 @@ seeds in the random initialization of KBTL
 import numpy as np
 import scipy.io
 import sys
-import os
-sys.path.append('..')
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from models.kbtl.kbtl_train import kbtl_train
 from models.kbtl.kbtl_test import kbtl_test
@@ -27,7 +29,7 @@ def main():
 
     # Load data
     try:
-        data = scipy.io.loadmat('../data/kbtl_demo_multiclass_data.mat')
+        data = scipy.io.loadmat(ROOT / 'data' / 'kbtl_demo_multiclass_data.mat')
         X = data['X'][0]  # Training data
         Y = data['Y'][0]  # Training labels
         Xtest = data['Xtest'][0]  # Test data

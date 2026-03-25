@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.linalg import eigs
+from scipy.linalg import eigh
 from util.f1score import f1score
 
 def jda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, classifier=None, iter=10, Yt=None):
@@ -41,7 +41,8 @@ def jda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, classifier=None, iter=10,
     H = np.eye(n) - np.ones((n, n)) / n
 
     if kern:
-        K = kern(hyp, X, X)
+        K_out = kern(hyp, X, X)
+        K = K_out[0] if isinstance(K_out, tuple) else K_out
     else:
         K = X
         n = d
@@ -57,7 +58,12 @@ def jda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, classifier=None, iter=10,
     for i in range(iter):
         A = mu * np.eye(n) + K.T @ M @ K
         B = K.T @ H @ K
-        eigvals, W = eigs(A, B, k=k, which='SM')
+        eps = 1e-6
+        B_reg = B + eps * np.eye(B.shape[0])
+        eigvals, W_full = eigh(A, B_reg)
+        k_use = min(k, W_full.shape[1])
+        idx = np.argsort(eigvals)[:k_use]
+        W = W_full[:, idx]
 
         if np.isreal(W).all():
             Z = K @ W

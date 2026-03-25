@@ -36,7 +36,8 @@ def mjda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, classifier=None, iter=10
     H = np.eye(n) - np.ones((n, n)) / n
 
     if kern:
-        K = kern(hyp, X, X)
+        K_out = kern(hyp, X, X)
+        K = K_out[0] if isinstance(K_out, tuple) else K_out
     else:
         K = X
         n = d

@@ -13,7 +13,7 @@ def kernelRBF(hyp, xp, xq):
     K: kernel matrix
     hyp: updated hyp
     """
-    if np.isnan(hyp):
+    if hyp is None or (isinstance(hyp, (float, np.floating)) and np.isnan(hyp)):
         Z = np.vstack([xp, xq])
         dist_sq = cdist(Z, Z, 'sqeuclidean')
         upper_tri = dist_sq[np.triu_indices_from(dist_sq, k=1)]
