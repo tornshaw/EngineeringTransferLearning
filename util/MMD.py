@@ -26,7 +26,8 @@ def MMD(Xs, Xt, kern=None, hyp=None, Ys=None, Yt=None):
     M0[ns:, ns:] = 1 / nt**2
 
     if kern is not None:
-        K = kern(hyp, X, X)
+        K_out = kern(hyp, X, X)
+        K = K_out[0] if isinstance(K_out, tuple) else K_out
         K += np.eye(n) * 1e-6
     else:
         K = X

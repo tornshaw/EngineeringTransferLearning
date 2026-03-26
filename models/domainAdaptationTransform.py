@@ -15,6 +15,7 @@ def domainAdaptationTransform(Xtest, Xs, Xt, W, kern, hyp):
     Z: transformed data
     """
     X = np.vstack([Xs, Xt])
-    K = kern(hyp, Xtest, X)
+    K_out = kern(hyp, Xtest, X)
+    K = K_out[0] if isinstance(K_out, tuple) else K_out
     Z = K @ W
     return Z

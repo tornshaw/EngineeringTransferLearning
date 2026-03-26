@@ -5,13 +5,16 @@ KBTL demo for binary problem
 import numpy as np
 from scipy.io import loadmat
 import sys
-sys.path.insert(0, '..')
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 from models.kbtl.kbtl_train_binary import kbtl_train_binary
 from models.kbtl.kbtl_test_binary import kbtl_test_binary
 from kernels.kernelRBF import kernelRBF
 
 # Load data
-data = loadmat('data/kbtl_demo_binary_data.mat')
+data = loadmat(ROOT / 'data' / 'kbtl_demo_binary_data.mat')
 X = [data['X'][0][i] for i in range(data['X'].shape[1])]  # list of arrays
 Xtest = [data['Xtest'][0][i] for i in range(data['Xtest'].shape[1])]
 Y = [data['Y'][0][i].flatten() for i in range(data['Y'].shape[1])]

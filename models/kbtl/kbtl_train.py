@@ -87,7 +87,7 @@ def kbtl_train(K, y, params):
     # Weights and bias
     bw = {
         'mu': np.vstack([np.zeros((1, L)), np.random.randn(R, L)]),
-        'sig': np.tile(np.eye(R + 1), (L, 1, 1)).transpose(2, 0, 1)
+        'sig': np.tile(np.eye(R + 1), (L, 1, 1)).transpose(1, 2, 0)
     }
 
     # Initialize discriminative function
