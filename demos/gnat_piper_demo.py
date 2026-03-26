@@ -1,6 +1,12 @@
 import numpy as np
 from scipy.io import loadmat
 from sklearn.preprocessing import StandardScaler
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
 from models.bda import bda
 from classifiers.classifierKNN import classifierKNN
 from kernels.kernelRBF import kernelRBF
@@ -11,8 +17,8 @@ from util.f1score import f1score
 def run_gnat_piper_demo():
     print('Running gnat_piper_demo.py')
 
-    data_feat = loadmat('data/gnat_piper_preprocessed_features.mat')
-    data_lbl = loadmat('data/gnat_piper_preprocessed_labels.mat')
+    data_feat = loadmat(ROOT / 'data' / 'gnat_piper_preprocessed_features.mat')
+    data_lbl = loadmat(ROOT / 'data' / 'gnat_piper_preprocessed_labels.mat')
 
     # Source/target PCA features are stored as 4x1 cell arrays in MATLAB
     Xs_cells = data_feat['Xs_tr']

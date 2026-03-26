@@ -63,7 +63,7 @@ def kbtl_train_binary(K, y, params):
 
     # Initialize discriminative function
     f = {
-        'mu': [np.abs(np.random.randn(n)) + params['margin'] * np.sign(yi) for yi, n in zip(y, N)],
+        'mu': [(np.abs(np.random.randn(n)) + params['margin']) * np.sign(yi) for yi, n in zip(y, N)],
         'sig': [np.ones(n) for n in N]
     }
 
@@ -73,7 +73,7 @@ def kbtl_train_binary(K, y, params):
     # Margins
     labs = [[yi < 0, yi > 0] for yi in y]
     margin_plus = [[-1e40 if lab[0][i] else params['margin'] for i in range(n)] for lab, n in zip(labs, N)]
-    margin_minus = [[-params['margin'] if lab[1][i] else 1e40 for i in range(n)] for lab, n in zip(labs, N)]
+    margin_minus = [[-params['margin'] if lab[0][i] else 1e40 for i in range(n)] for lab, n in zip(labs, N)]
     lower_margin = [np.array([mp[i] for i in range(n)]) for mp, n in zip(margin_plus, N)]
     upper_margin = [np.array([mm[i] for i in range(n)]) for mm, n in zip(margin_minus, N)]
 
@@ -92,7 +92,8 @@ def kbtl_train_binary(K, y, params):
                 A['mu'][t][:, s] = A['sig'][t][:, :, s] @ (K[t] @ H['mu'][t][s, :].T / Hsig2)
 
         # Update H
-        H['sig'] = [inv(np.eye(R) / Hsig2 + bw['mu'][1:] @ bw['mu'][1:].T + bw['sig'][1:, 1:]) for _ in range(T)]
+        w = bw['mu'][1:].reshape(-1, 1)
+        H['sig'] = [inv(np.eye(R) / Hsig2 + w @ w.T + bw['sig'][1:, 1:]) for _ in range(T)]
         H['mu'] = [H['sig'][t] @ (A['mu'][t].T @ K[t] / Hsig2 + (bw['mu'][1:, None] @ f['mu'][t][None, :]) - np.tile(bw['mu'][1:] * bw['mu'][0] + bw['sig'][1:, 0], (N[t], 1)).T) for t in range(T)]
 
         # Update classifier part
