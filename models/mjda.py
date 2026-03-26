@@ -3,7 +3,7 @@ from scipy.linalg import eigh
 from util.f1score import f1score
 from .metricInformedLabels import metricInformedLabels
 
-def mjda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, classifier=None, iter=10, nf=None, ne=1000, Yt=None):
+def mjda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, classifier=None, iter=10, nf=None, ne=1000, Yt=None, return_history=False):
     """
     Metric-informed joint distribution adaptation
 
@@ -107,5 +107,9 @@ def mjda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, classifier=None, iter=10
         fscore = None
 
     mmd = np.sum(np.diag(K @ M0))
+
+    if return_history:
+        history = {'f1_per_iteration': [float(v) for v in fscore_list]}
+        return Zs, Zt, Ytp, W, cls, fscore, mmd, history
 
     return Zs, Zt, Ytp, W, cls, fscore, mmd
