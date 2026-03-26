@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from sklearn.preprocessing import StandardScaler
 
@@ -56,6 +57,11 @@ def run_all_benchmarks(root: Path) -> dict:
         'test_acc': [float(v) for v in pred_test['acc']],
         'mean_train_acc': float(np.mean(pred_train['acc'])),
         'mean_test_acc': float(np.mean(pred_test['acc'])),
+        'curve': {
+            'x': list(range(1, len(pred_train['acc']) + 1)),
+            'train_acc': [float(v) for v in pred_train['acc']],
+            'test_acc': [float(v) for v in pred_test['acc']],
+        },
     }
 
     d = loadmat(root / 'data' / 'kbtl_demo_multiclass_data.mat')
@@ -88,6 +94,11 @@ def run_all_benchmarks(root: Path) -> dict:
         'test_acc': [float(v) for v in pred_test['acc']],
         'mean_train_acc': float(np.mean(pred_train['acc'])),
         'mean_test_acc': float(np.mean(pred_test['acc'])),
+        'curve': {
+            'x': list(range(1, len(pred_train['acc']) + 1)),
+            'train_acc': [float(v) for v in pred_train['acc']],
+            'test_acc': [float(v) for v in pred_test['acc']],
+        },
     }
 
     np.random.seed(0)
@@ -110,8 +121,8 @@ def run_all_benchmarks(root: Path) -> dict:
     xt_tr = scaler_t.fit_transform(xt_tr)
     xt_tst = scaler_t.transform(xt_tst)
 
-    _, _, _, w, cls, _, _ = mjda(
-        xs_tr, ys_tr, xt_tr, kernelRBF, np.nan, 0.1, 2, classifierKNN_cv, 1, 8, 1000, yt_tr
+    _, _, _, w, cls, _, _, mjda_history = mjda(
+        xs_tr, ys_tr, xt_tr, kernelRBF, np.nan, 0.1, 2, classifierKNN_cv, 1, 8, 1000, yt_tr, return_history=True
     )
     zs_tst = domainAdaptationTransform(xs_tst, xs_tr, xt_tr, w, kernelRBF, np.nan)
     zt_tst = domainAdaptationTransform(xt_tst, xs_tr, xt_tr, w, kernelRBF, np.nan)
@@ -119,6 +130,10 @@ def run_all_benchmarks(root: Path) -> dict:
     results['mjda'] = {
         'test_acc': float(accuracy(ytp_tst, yt_tst)),
         'test_f1': float(f1score(yt_tst, ytp_tst)[0]),
+        'curve': {
+            'x': list(range(1, len(mjda_history['f1_per_iteration']) + 1)),
+            'f1': mjda_history['f1_per_iteration'],
+        },
     }
 
     feat = loadmat(root / 'data' / 'gnat_piper_preprocessed_features.mat')
@@ -132,7 +147,7 @@ def run_all_benchmarks(root: Path) -> dict:
 
     xs_tr = StandardScaler().fit_transform(xs_tr)
     xt_tr = StandardScaler().fit_transform(xt_tr)
-    _, _, ytp, _, _, fscore_bda, mmd = bda(
+    _, _, ytp, _, _, fscore_bda, mmd, bda_history = bda(
         xs_tr,
         ys_tr,
         xt_tr,
@@ -145,6 +160,7 @@ def run_all_benchmarks(root: Path) -> dict:
         iter=2,
         mode=0,
         Yt=yt_tr,
+        return_history=True,
     )
     train_target_acc = float(accuracy(yt_tr, ytp))
     train_target_f1 = float(f1score(yt_tr, ytp)[0])
@@ -154,6 +170,10 @@ def run_all_benchmarks(root: Path) -> dict:
         'train_target_f1': train_target_f1,
         'mmd': float(mmd),
         'fscore': float(fscore_bda),
+        'curve': {
+            'x': list(range(1, len(bda_history['f1_per_iteration']) + 1)),
+            'f1': bda_history['f1_per_iteration'],
+        },
     }
     return results
 
@@ -191,6 +211,43 @@ def build_comparison_table(results: dict) -> list[dict]:
     return rows
 
 
+
+
+
+
+def plot_training_curves(results: dict):
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    kb = results['kbtl_binary']['curve']
+    axes[0, 0].plot(kb['x'], kb['train_acc'], marker='o', label='Train Acc')
+    axes[0, 0].plot(kb['x'], kb['test_acc'], marker='s', label='Test Acc')
+    axes[0, 0].set_title('KBTL Binary (per task)')
+    axes[0, 0].set_xlabel('Task Index')
+    axes[0, 0].set_ylabel('Accuracy (%)')
+    axes[0, 0].legend()
+
+    km = results['kbtl_multiclass']['curve']
+    axes[0, 1].plot(km['x'], km['train_acc'], marker='o', label='Train Acc')
+    axes[0, 1].plot(km['x'], km['test_acc'], marker='s', label='Test Acc')
+    axes[0, 1].set_title('KBTL Multiclass (per task)')
+    axes[0, 1].set_xlabel('Task Index')
+    axes[0, 1].set_ylabel('Accuracy (%)')
+    axes[0, 1].legend()
+
+    mj = results['mjda']['curve']
+    axes[1, 0].plot(mj['x'], mj['f1'], marker='o')
+    axes[1, 0].set_title('MJDA F1 per iteration')
+    axes[1, 0].set_xlabel('Iteration')
+    axes[1, 0].set_ylabel('F1')
+
+    bd = results['bda_gnat_piper']['curve']
+    axes[1, 1].plot(bd['x'], bd['f1'], marker='o', color='tab:orange')
+    axes[1, 1].set_title('BDA F1 per iteration')
+    axes[1, 1].set_xlabel('Iteration')
+    axes[1, 1].set_ylabel('F1')
+
+    plt.tight_layout()
+    return fig, axes
 
 
 if __name__ == '__main__':

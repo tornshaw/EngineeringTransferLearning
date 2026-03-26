@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import eigh
 from util.f1score import f1score
 
-def bda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, lambda_=0.5, classifier=None, iter=10, mode=0, Yt=None):
+def bda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, lambda_=0.5, classifier=None, iter=10, mode=0, Yt=None, return_history=False):
     """
     Balanced distribution adaptation
 
@@ -126,5 +126,9 @@ def bda(Xs, Ys, Xt, kern=None, hyp=None, mu=1.0, k=10, lambda_=0.5, classifier=N
         fscore = np.nan
 
     mmd = np.sum(np.diag(W.T @ K @ M_balanced @ K @ W))
+
+    if return_history:
+        history = {'f1_per_iteration': [float(v) for v in fscore_list]}
+        return Zs, Zt, Ytp, W, cls, fscore, mmd, history
 
     return Zs, Zt, Ytp, W, cls, fscore, mmd
