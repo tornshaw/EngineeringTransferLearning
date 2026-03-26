@@ -36,8 +36,8 @@ def kbtl_test_binary(K, params, y=None):
     }
 
     # Probability of y = +1
-    prob_plus = [norm.cdf((pred['f']['mu'][t] - params['margin']) / np.sqrt(pred['f']['sig'][t])) for t in range(len(K))]
-    prob_minus = [1 - norm.cdf((pred['f']['mu'][t] + params['margin']) / np.sqrt(pred['f']['sig'][t])) for t in range(len(K))]
+    prob_plus = [norm.cdf((pred['f']['mu'][t] - params['margin']) / pred['f']['sig'][t]) for t in range(len(K))]
+    prob_minus = [1 - norm.cdf((pred['f']['mu'][t] - params['margin']) / pred['f']['sig'][t]) for t in range(len(K))]
     pred['py'] = [p_plus / (p_plus + p_minus) for p_plus, p_minus in zip(prob_plus, prob_minus)]
 
     # MAP estimate of labels

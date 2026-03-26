@@ -17,7 +17,8 @@ def kernelRBF(hyp, xp, xq):
         Z = np.vstack([xp, xq])
         dist_sq = cdist(Z, Z, 'sqeuclidean')
         upper_tri = dist_sq[np.triu_indices_from(dist_sq, k=1)]
-        hyp = np.sqrt(0.5 * np.median(upper_tri))
+        non_zero = upper_tri[upper_tri > 0]
+        hyp = np.sqrt(0.5 * np.median(non_zero))
     d = cdist(xp / np.sqrt(2 * hyp**2), xq / np.sqrt(2 * hyp**2), 'sqeuclidean')
     K = np.exp(-d)
     return K, hyp

@@ -12,10 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from models.mjda import mjda
-from classifiers.classifierKNN import classifierKNN
+from classifiers.classifierKNN_cv import classifierKNN_cv
 from kernels.kernelRBF import kernelRBF
 from util.accuracy import accuracy
 from util.f1score import f1score
+
+np.random.seed(0)
 
 # Load data
 data = loadmat(ROOT / 'data' / 'gnat_repair.mat')
@@ -50,8 +52,12 @@ scaler_t = StandardScaler()
 Xt_tr = scaler_t.fit_transform(Xt_tr)
 Xt_tst = scaler_t.transform(Xt_tst)
 
-# MJDA
-Zs, Zt, Ytp, W, cls, fscore, mmd = mjda(Xs_tr, Ys_tr, Xt_tr, kernelRBF, np.nan, 1.0, 10, classifierKNN, 10, None, 1000, Yt_tr)
+# MJDA (aligned with MATLAB demo defaults)
+Zs, Zt, Ytp, W, cls, fscore, mmd = mjda(
+    Xs_tr, Ys_tr, Xt_tr,
+    kernelRBF, np.nan,
+    0.1, 2, classifierKNN_cv, 1, 8, 1000, Yt_tr
+)
 
 # Predict on test
 # Assuming domainAdaptationTransform for test
@@ -59,7 +65,7 @@ from models.domainAdaptationTransform import domainAdaptationTransform
 Zs_tst = domainAdaptationTransform(Xs_tst, Xs_tr, Xt_tr, W, kernelRBF, np.nan)
 Zt_tst = domainAdaptationTransform(Xt_tst, Xs_tr, Xt_tr, W, kernelRBF, np.nan)
 
-Ytp_tst, _ = classifierKNN(Zs_tst, Ys_tr, Zt_tst, cls)
+Ytp_tst, _ = classifierKNN_cv(Zs_tst, Ys_tr, Zt_tst, cls)
 
 # Evaluate
 acc = accuracy(Ytp_tst, Yt_tst)
